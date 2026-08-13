@@ -3,8 +3,6 @@ const { sequelize, Plan, User, Corporate } = require('./models');
 const { hashPassword } = require('./utils/auth');
 
 async function seed() {
-  await sequelize.sync();
-
   const plans = [
     { name: 'Presencia', priceMxn: 1750, description: 'Perfil + branding básico + landing page', features: JSON.stringify(['Perfil', 'Branding básico', 'Landing page', 'Marketplace']) },
     { name: 'Growth', priceMxn: 3000, description: 'Web + contenido mensual + promociones', features: JSON.stringify(['Web', '12 posts/mes', '8 historias', '4 videos cortos', '1 promoción mensual', 'Marketplace']) },
@@ -27,18 +25,26 @@ async function seed() {
     console.log(`Corporativo listo: ${corp.name}`);
   }
 
-  const adminEmail = 'admin@plataforma.mx';
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@plataforma.mx';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
   const [admin, created] = await User.findOrCreate({
     where: { email: adminEmail },
-    defaults: { passwordHash: hashPassword('admin123'), role: 'admin', name: 'Admin' },
+    defaults: { passwordHash: hashPassword(adminPassword), role: 'admin', name: 'Admin' },
   });
-  console.log(created ? `Admin creado: ${adminEmail} / admin123` : `Admin ya existía: ${adminEmail}`);
+  console.log(created ? `Admin creado: ${adminEmail} / ${adminPassword}` : `Admin ya existía: ${adminEmail}`);
 
   console.log('\nSeed completo.');
-  process.exit(0);
 }
 
-seed().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+module.exports = seed;
+
+// Si se ejecuta directamente (node src/seed.js), corre y termina el proceso.
+if (require.main === module) {
+  sequelize.sync()
+    .then(seed)
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error(err);
+      process.exit(1);
+    });
+}
