@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const { sequelize } = require('./models');
 
@@ -25,6 +26,10 @@ app.use('/api/promotions', promotionRoutes);
 app.use('/api/redemptions', redemptionRoutes);
 app.use('/api/corporates', corporateRoutes);
 app.use('/api/admin', adminRoutes);
+
+// Sirve el Panel Negocio (index.html, app.js, styles.css) desde la raíz del
+// proyecto, para que backend y frontend vivan en el mismo link.
+app.use(express.static(path.join(__dirname, '..')));
 
 // Manejador de errores genérico
 app.use((err, req, res, next) => {
