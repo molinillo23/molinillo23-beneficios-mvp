@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beneficios — App del Empleado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ===================== AUTENTICACIÓN ===================== -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <span class="auth-brand-mark">●</span>
+      <span class="auth-brand-name">MIS BENEFICIOS</span>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">Entrar</button>
+      <button class="auth-tab" data-tab="register">Crear cuenta</button>
+    </div>
+
+    <form id="login-form" class="auth-form">
+      <label>Correo
+        <input type="email" id="login-email" required placeholder="tu@correo.com">
+      </label>
+      <label>Contraseña
+        <input type="password" id="login-password" required placeholder="••••••••">
+      </label>
+      <button type="submit" class="btn-primary">Entrar</button>
+    </form>
+
+    <form id="register-form" class="auth-form hidden">
+      <label>Tu nombre
+        <input type="text" id="reg-name" required placeholder="Nombre completo">
+      </label>
+      <label>Correo
+        <input type="email" id="reg-email" required placeholder="tu@correo.com">
+      </label>
+      <label>Contraseña
+        <input type="password" id="reg-password" required minlength="6" placeholder="Mínimo 6 caracteres">
+      </label>
+      <label>Empresa donde trabajas
+        <select id="reg-corporate" required></select>
+      </label>
+      <button type="submit" class="btn-primary">Crear cuenta</button>
+    </form>
+
+    <p id="auth-error" class="auth-error hidden"></p>
+  </div>
+</div>
+
+<!-- ===================== APP PRINCIPAL ===================== -->
+<div id="app" class="app hidden">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-mark">●</span>
+      <span class="brand-name">MIS<br>BENEFICIOS</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="descubrir"><span class="nav-num">01</span> Descubrir</button>
+      <button class="nav-item" data-view="credencial"><span class="nav-num">02</span> Mi credencial</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="logout-btn" class="btn-ghost">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ---------- DESCUBRIR ---------- -->
+    <section id="view-descubrir" class="view active">
+      <header class="view-header">
+        <p class="eyebrow">Marketplace corporativo</p>
+        <h1>Descuentos disponibles</h1>
+      </header>
+      <p class="view-desc">Negocios locales que ofrecen descuento a empleados de tu empresa.</p>
+      <div id="promotions-list" class="history-list">Cargando…</div>
+    </section>
+
+    <!-- ---------- MI CREDENCIAL ---------- -->
+    <section id="view-credencial" class="view">
+      <header class="view-header">
+        <p class="eyebrow">Identidad verificada</p>
+        <h1>Mi credencial</h1>
+      </header>
+      <div id="credential-card" class="credential-card">Cargando…</div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ---------- MODAL: QR de canje ---------- -->
+<div id="qr-modal" class="qr-modal hidden">
+  <div class="qr-modal-card">
+    <button id="qr-modal-close" class="qr-modal-close">✕</button>
+    <p class="eyebrow">Muestra esto en el negocio</p>
+    <h2 id="qr-promo-title">Promoción</h2>
+    <div class="qr-code-box">
+      <span id="qr-token-display" class="qr-token">— — — —</span>
+    </div>
+    <p class="qr-timer">Válido por <span id="qr-countdown">5:00</span></p>
+    <p class="qr-hint">El cajero va a pedirte este código para aplicar tu descuento.</p>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
