@@ -31,6 +31,9 @@ app.use('/api/admin', adminRoutes);
 // proyecto, para que backend y frontend vivan en el mismo link.
 app.use(express.static(path.join(__dirname, '..')));
 
+// Sirve el Panel Admin en /admin (carpeta separada, mismo servidor).
+app.use('/admin', express.static(path.join(__dirname, '..', 'panel-admin')));
+
 // Manejador de errores genérico
 app.use((err, req, res, next) => {
   console.error(err);
