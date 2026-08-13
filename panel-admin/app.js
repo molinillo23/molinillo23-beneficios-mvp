@@ -121,3 +121,103 @@ async function loadBusinesses() {
     el.innerHTML = `<p class="empty-note">No se pudo cargar: ${err.message}</p>`;
   }
 }
+// ===================== 03 PRODUCCIÓN IA =====================
+
+const STATUS_LABELS = {
+  submitted: 'Enviado', in_production: 'En producción', in_review: 'Listo para revisar cliente',
+  approved: 'Aprobado por cliente', published: 'Publicado',
+};
+const CHANNEL_LABELS = {
+  instagram_post: 'Instagram — Post', instagram_story: 'Instagram — Historia', facebook: 'Facebook',
+  tiktok_script: 'TikTok — Guion', google_business: 'Google Business', whatsapp: 'WhatsApp',
+  corporate_offer: 'Oferta corporativa',
+};
+
+async function loadContentRequests() {
+  const el = document.getElementById('requests-list');
+  el.innerHTML = 'Cargando…';
+  try {
+    const requests = await api('/admin/content-requests');
+    if (!requests.length) { el.innerHTML = `<p class="empty-note">No hay briefs mensuales todavía.</p>`; return; }
+
+    el.innerHTML = requests.map((r) => `
+      <div class="history-item" style="flex-direction: column; align-items: stretch;">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+          <div class="history-item-main">
+            <span class="history-item-title">${r.Business ? r.Business.name : '—'} — ${r.monthTag}: ${r.whatToPromote || 'Sin descripción'}</span>
+            <span class="history-item-sub">Objetivo: ${r.objective || '—'}</span>
+          </div>
+          <span class="status-badge ${r.status === 'published' || r.status === 'approved' ? 'published' : ''}">${STATUS_LABELS[r.status] || r.status}</span>
+        </div>
+        <div class="item-actions" style="margin-top: 10px;">
+          <button class="btn-small primary" data-generate="${r.id}">Generar con IA</button>
+          <button class="btn-small" data-view-items="${r.id}">Ver contenido</button>
+          ${r.status === 'approved' ? `<button class="btn-small" data-publish="${r.id}">Marcar publicado</button>` : ''}
+        </div>
+        <div class="generated-items hidden" id="gen-items-${r.id}"></div>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('[data-generate]').forEach((btn) => {
+      btn.addEventListener('click', () => generateContent(btn.dataset.generate, btn));
+    });
+    document.querySelectorAll('[data-view-items]').forEach((btn) => {
+      btn.addEventListener('click', () => toggleGeneratedItems(btn.dataset.viewItems));
+    });
+    document.querySelectorAll('[data-publish]').forEach((btn) => {
+      btn.addEventListener('click', () => publishRequest(btn.dataset.publish));
+    });
+  } catch (err) {
+    el.innerHTML = `<p class="empty-note">No se pudo cargar: ${err.message}</p>`;
+  }
+}
+
+async function generateContent(requestId, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Generando…';
+  try {
+    await api(`/admin/content-requests/${requestId}/generate`, { method: 'POST' });
+    await loadContentRequests();
+    await toggleGeneratedItems(requestId, true);
+  } catch (err) {
+    alert(`No se pudo generar: ${err.message}`);
+    btn.disabled = false;
+    btn.textContent = 'Generar con IA';
+  }
+}
+
+async function toggleGeneratedItems(requestId, forceOpen = false) {
+  const panel = document.getElementById(`gen-items-${requestId}`);
+  if (!panel) return;
+  const isHidden = panel.classList.contains('hidden');
+  if (!isHidden && !forceOpen) { panel.classList.add('hidden'); return; }
+
+  panel.classList.remove('hidden');
+  panel.innerHTML = 'Cargando…';
+  try {
+    const items = await api(`/admin/content-requests/${requestId}/items`);
+    if (!items.length) { panel.innerHTML = `<p class="empty-note">Aún no se ha generado contenido para este brief.</p>`; return; }
+
+    panel.innerHTML = items.map((item) => `
+      <div class="generated-item-card">
+        <span class="generated-item-channel">${CHANNEL_LABELS[item.channel] || item.channel}</span>
+        <textarea class="generated-item-textarea" data-item-id="${item.id}">${item.text}</textarea>
+        <div class="item-actions" style="margin-top: 8px;">
+          <button class="btn-small" data-save-item="${item.id}">Guardar cambios</button>
+        </div>
+      </div>
+    `).join('');
+
+    panel.querySelectorAll('[data-save-item]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const textarea = panel.querySelector(`textarea[data-item-id="${btn.dataset.saveItem}"]`);
+        btn.disabled = true;
+        btn.textContent = 'Guardando…';
+        try {
+          await api(`/admin/content-items/${btn.dataset.saveItem}`, { method: 'PATCH', body: { text: textarea.value } });
+          btn.textContent = 'Guardado ✓';
+          setTimeout(() => { btn.disabled = false; btn.textContent = 'Guardar cambios'; }, 1500);
+        } catch (err) {
+          alert(`No se pudo guardar: ${err.message}`);
+          btn.disabled = false;
+          btn.textContent = 'Guardar cambios';
