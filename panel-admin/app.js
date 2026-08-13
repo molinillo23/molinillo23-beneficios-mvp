@@ -121,6 +121,7 @@ async function loadBusinesses() {
     el.innerHTML = `<p class="empty-note">No se pudo cargar: ${err.message}</p>`;
   }
 }
+
 // ===================== 03 PRODUCCIÓN IA =====================
 
 const STATUS_LABELS = {
@@ -221,3 +222,119 @@ async function toggleGeneratedItems(requestId, forceOpen = false) {
           alert(`No se pudo guardar: ${err.message}`);
           btn.disabled = false;
           btn.textContent = 'Guardar cambios';
+        }
+      });
+    });
+  } catch (err) {
+    panel.innerHTML = `<p class="empty-note">No se pudo cargar: ${err.message}</p>`;
+  }
+}
+
+async function publishRequest(requestId) {
+  try {
+    await api(`/admin/content-requests/${requestId}`, { method: 'PATCH', body: { status: 'published' } });
+    await loadContentRequests();
+  } catch (err) {
+    alert(`No se pudo publicar: ${err.message}`);
+  }
+}
+
+// ===================== 04 CORPORATIVOS =====================
+
+document.getElementById('corp-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    await api('/corporates', {
+      method: 'POST',
+      body: {
+        name: document.getElementById('corp-name').value,
+        city: document.getElementById('corp-city').value,
+      },
+    });
+    e.target.reset();
+    await loadCorporates();
+  } catch (err) {
+    alert(`No se pudo agregar: ${err.message}`);
+  }
+});
+
+async function loadCorporates() {
+  const el = document.getElementById('corporates-list');
+  el.innerHTML = 'Cargando…';
+  try {
+    const corporates = await api('/corporates', { auth: false });
+    if (!corporates.length) { el.innerHTML = `<p class="empty-note">No hay corporativos todavía.</p>`; return; }
+    el.innerHTML = corporates.map((c) => `
+      <div class="history-item">
+        <div class="history-item-main">
+          <span class="history-item-title">${c.name}</span>
+          <span class="history-item-sub">${c.city || 'Sin ciudad'}</span>
+        </div>
+        <span class="status-badge published">Activo</span>
+      </div>
+    `).join('');
+  } catch (err) {
+    el.innerHTML = `<p class="empty-note">No se pudo cargar: ${err.message}</p>`;
+  }
+}
+
+// ===================== 05 EMPLEADOS =====================
+
+async function loadEmployees() {
+  const el = document.getElementById('employees-list');
+  el.innerHTML = 'Cargando…';
+  try {
+    const employees = await api('/admin/employees');
+    if (!employees.length) { el.innerHTML = `<p class="empty-note">No hay empleados registrados todavía.</p>`; return; }
+    el.innerHTML = employees.map((emp) => `
+      <div class="history-item">
+        <div class="history-item-main">
+          <span class="history-item-title">${emp.User ? (emp.User.name || emp.User.email) : '—'}</span>
+          <span class="history-item-sub">${emp.Corporate ? emp.Corporate.name : 'Sin corporativo'}</span>
+        </div>
+        <div class="item-actions">
+          <span class="${emp.verified ? 'employee-verified' : 'employee-pending'}">${emp.verified ? 'VERIFICADO' : 'PENDIENTE'}</span>
+          ${!emp.verified ? `<button class="btn-small primary" data-verify="${emp.id}">Verificar</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+    el.querySelectorAll('[data-verify]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await api(`/corporates/employees/${btn.dataset.verify}/verify`, { method: 'PATCH' });
+          await loadEmployees();
+        } catch (err) {
+          alert(`No se pudo verificar: ${err.message}`);
+        }
+      });
+    });
+  } catch (err) {
+    el.innerHTML = `<p class="empty-note">No se pudo cargar: ${err.message}</p>`;
+  }
+}
+
+// ===================== 06 CANJES =====================
+
+async function loadRedemptions() {
+  const el = document.getElementById('redemptions-list');
+  el.innerHTML = 'Cargando…';
+  try {
+    const redemptions = await api('/admin/redemptions');
+    if (!redemptions.length) { el.innerHTML = `<p class="empty-note">No hay canjes registrados todavía.</p>`; return; }
+    el.innerHTML = redemptions.map((r) => `
+      <div class="history-item">
+        <div class="history-item-main">
+          <span class="history-item-title">${r.Business ? r.Business.name : '—'} — ${r.Promotion ? r.Promotion.title : '—'}</span>
+          <span class="history-item-sub">${r.Employee && r.Employee.Corporate ? r.Employee.Corporate.name : '—'} · Venta: $${r.purchaseAmountMxn || '—'} MXN · Descuento: $${r.discountAppliedMxn || '—'} MXN</span>
+        </div>
+        <span class="status-badge published">${new Date(r.createdAt).toLocaleDateString('es-MX')}</span>
+      </div>
+    `).join('');
+  } catch (err) {
+    el.innerHTML = `<p class="empty-note">No se pudo cargar: ${err.message}</p>`;
+  }
+}
+
+// ===================== INIT =====================
+
+if (state.token) bootApp();
