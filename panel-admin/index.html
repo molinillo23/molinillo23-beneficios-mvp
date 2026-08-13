@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Admin — Plataforma de Beneficios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ===================== AUTENTICACIÓN ===================== -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <span class="auth-brand-mark">●</span>
+      <span class="auth-brand-name">PANEL ADMIN</span>
+    </div>
+    <form id="login-form" class="auth-form">
+      <label>Correo
+        <input type="email" id="login-email" required placeholder="admin@plataforma.mx">
+      </label>
+      <label>Contraseña
+        <input type="password" id="login-password" required placeholder="••••••••">
+      </label>
+      <button type="submit" class="btn-primary">Entrar</button>
+    </form>
+    <p id="auth-error" class="auth-error hidden"></p>
+  </div>
+</div>
+
+<!-- ===================== APP PRINCIPAL ===================== -->
+<div id="app" class="app hidden">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-mark">●</span>
+      <span class="brand-name">PANEL<br>ADMIN</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="resumen"><span class="nav-num">01</span> Resumen</button>
+      <button class="nav-item" data-view="negocios"><span class="nav-num">02</span> Negocios</button>
+      <button class="nav-item" data-view="produccion"><span class="nav-num">03</span> Producción IA</button>
+      <button class="nav-item" data-view="corporativos"><span class="nav-num">04</span> Corporativos</button>
+      <button class="nav-item" data-view="empleados"><span class="nav-num">05</span> Empleados</button>
+      <button class="nav-item" data-view="canjes"><span class="nav-num">06</span> Canjes</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="logout-btn" class="btn-ghost">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ---------- RESUMEN ---------- -->
+    <section id="view-resumen" class="view active">
+      <header class="view-header">
+        <p class="eyebrow">Plataforma</p>
+        <h1>Resumen general</h1>
+      </header>
+      <div class="receipt-row" id="overview-receipts">Cargando…</div>
+    </section>
+
+    <!-- ---------- NEGOCIOS ---------- -->
+    <section id="view-negocios" class="view">
+      <header class="view-header">
+        <p class="eyebrow">Clientes</p>
+        <h1>Negocios</h1>
+      </header>
+      <div id="businesses-list" class="history-list">Cargando…</div>
+    </section>
+
+    <!-- ---------- PRODUCCIÓN IA ---------- -->
+    <section id="view-produccion" class="view">
+      <header class="view-header">
+        <p class="eyebrow">Cola de trabajo</p>
+        <h1>Producción de contenido</h1>
+      </header>
+      <p class="view-desc">Briefs mensuales enviados por los negocios. Genera el contenido con IA, revísalo y edítalo antes de que el cliente lo apruebe.</p>
+      <div id="requests-list" class="history-list">Cargando…</div>
+    </section>
+
+    <!-- ---------- CORPORATIVOS ---------- -->
+    <section id="view-corporativos" class="view">
+      <header class="view-header">
+        <p class="eyebrow">Canal de distribución</p>
+        <h1>Corporativos</h1>
+      </header>
+      <form id="corp-form" class="inline-form">
+        <input type="text" id="corp-name" placeholder="Nombre (ej. Daimler)" required>
+        <input type="text" id="corp-city" placeholder="Ciudad">
+        <button type="submit" class="btn-primary">Agregar corporativo</button>
+      </form>
+      <div id="corporates-list" class="history-list">Cargando…</div>
+    </section>
+
+    <!-- ---------- EMPLEADOS ---------- -->
+    <section id="view-empleados" class="view">
+      <header class="view-header">
+        <p class="eyebrow">Verificación</p>
+        <h1>Empleados</h1>
+      </header>
+      <div id="employees-list" class="history-list">Cargando…</div>
+    </section>
+
+    <!-- ---------- CANJES ---------- -->
+    <section id="view-canjes" class="view">
+      <header class="view-header">
+        <p class="eyebrow">Bitácora</p>
+        <h1>Canjes recientes</h1>
+      </header>
+      <div id="redemptions-list" class="history-list">Cargando…</div>
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
