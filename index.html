@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Negocio — Plataforma de Beneficios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ===================== PANTALLA DE AUTENTICACIÓN ===================== -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <span class="auth-brand-mark">●</span>
+      <span class="auth-brand-name">PANEL NEGOCIO</span>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">Entrar</button>
+      <button class="auth-tab" data-tab="register">Crear cuenta</button>
+    </div>
+
+    <form id="login-form" class="auth-form">
+      <label>Correo
+        <input type="email" id="login-email" required placeholder="tu@negocio.mx">
+      </label>
+      <label>Contraseña
+        <input type="password" id="login-password" required placeholder="••••••••">
+      </label>
+      <button type="submit" class="btn-primary">Entrar</button>
+      <p class="auth-hint">¿No tienes cuenta? Usa la pestaña "Crear cuenta".</p>
+    </form>
+
+    <form id="register-form" class="auth-form hidden">
+      <label>Nombre del negocio
+        <input type="text" id="reg-business-name" required placeholder="La Hamburguesería">
+      </label>
+      <label>Giro
+        <input type="text" id="reg-giro" placeholder="Restaurante, clínica, gimnasio...">
+      </label>
+      <label>Ciudad
+        <input type="text" id="reg-city" placeholder="Saltillo">
+      </label>
+      <label>Tu nombre
+        <input type="text" id="reg-name" required placeholder="Nombre del responsable">
+      </label>
+      <label>Correo
+        <input type="email" id="reg-email" required placeholder="tu@negocio.mx">
+      </label>
+      <label>Contraseña
+        <input type="password" id="reg-password" required minlength="6" placeholder="Mínimo 6 caracteres">
+      </label>
+      <button type="submit" class="btn-primary">Crear cuenta</button>
+    </form>
+
+    <p id="auth-error" class="auth-error hidden"></p>
+  </div>
+</div>
+
+<!-- ===================== APP PRINCIPAL ===================== -->
+<div id="app" class="app hidden">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-mark">●</span>
+      <span class="brand-name">PANEL<br>NEGOCIO</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="inicio">
+        <span class="nav-num">01</span> Inicio
+      </button>
+      <button class="nav-item" data-view="perfil">
+        <span class="nav-num">02</span> Mi perfil
+      </button>
+      <button class="nav-item" data-view="plan">
+        <span class="nav-num">03</span> Mi plan
+      </button>
+      <button class="nav-item" data-view="material">
+        <span class="nav-num">04</span> Material del mes
+      </button>
+      <button class="nav-item" data-view="promociones">
+        <span class="nav-num">05</span> Promociones
+      </button>
+      <button class="nav-item" data-view="canjes">
+        <span class="nav-num">06</span> Canjear QR
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="biz-chip">
+        <span id="sidebar-biz-name">—</span>
+        <span id="sidebar-biz-status" class="status-dot"></span>
+      </div>
+      <button id="logout-btn" class="btn-ghost">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ---------- INICIO / DASHBOARD ---------- -->
+    <section id="view-inicio" class="view active">
+      <header class="view-header">
+        <div>
+          <p class="eyebrow">Resumen</p>
+          <h1>Hola, <span id="inicio-name">—</span></h1>
+        </div>
+      </header>
+
+      <div class="receipt-row" id="metric-receipts">
+        <!-- generado por JS -->
+      </div>
+
+      <div class="panel-grid">
+        <div class="panel-card">
+          <h3>Tu plan actual</h3>
+          <div id="inicio-plan" class="plan-summary">Cargando…</div>
+        </div>
+        <div class="panel-card">
+          <h3>Promociones activas</h3>
+          <div id="inicio-promos" class="mini-list">Cargando…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- PERFIL ---------- -->
+    <section id="view-perfil" class="view">
+      <header class="view-header">
+        <div>
+          <p class="eyebrow">Brief del negocio</p>
+          <h1>Mi perfil</h1>
+        </div>
+      </header>
+      <p class="view-desc">Esta información es la base de todo lo que produce el sistema por ti: contenido, sitio web y presencia digital.</p>
+
+      <form id="perfil-form" class="stack-form">
+        <div class="form-grid">
+          <label>Nombre del negocio
+            <input type="text" id="p-name">
+          </label>
+          <label>Giro
+            <input type="text" id="p-giro">
+          </label>
+          <label>Ciudad
+            <input type="text" id="p-city">
+          </label>
+          <label>Sitio web actual
+            <input type="text" id="p-website" placeholder="https://...">
+          </label>
+        </div>
+        <label>¿Qué vendes?
+          <textarea id="p-sells" rows="2" placeholder="Ej. Hamburguesas artesanales, boneless, alitas..."></textarea>
+        </label>
+        <label>Público objetivo
+          <textarea id="p-audience" rows="2" placeholder="Ej. Empleados de plantas industriales, 25-45 años"></textarea>
+        </label>
+        <label>Objetivo principal
+          <select id="p-objective">
+            <option value="mas_ventas">Más ventas</option>
+            <option value="mas_seguidores">Más seguidores</option>
+            <option value="mas_visitas">Más visitas</option>
+            <option value="lanzar_producto">Lanzar producto</option>
+            <option value="clientes_nuevos">Conseguir clientes nuevos</option>
+          </select>
+        </label>
+
+        <fieldset class="checkbox-grid">
+          <legend>¿Qué necesitas?</legend>
+          <label class="checkbox"><input type="checkbox" value="web"> Sitio web</label>
+          <label class="checkbox"><input type="checkbox" value="branding"> Branding</label>
+          <label class="checkbox"><input type="checkbox" value="fotos"> Fotografías editadas</label>
+          <label class="checkbox"><input type="checkbox" value="videos"> Videos</label>
+          <label class="checkbox"><input type="checkbox" value="instagram"> Instagram</label>
+          <label class="checkbox"><input type="checkbox" value="facebook"> Facebook</label>
+          <label class="checkbox"><input type="checkbox" value="tiktok"> TikTok</label>
+          <label class="checkbox"><input type="checkbox" value="google_ads"> Google Ads</label>
+        </fieldset>
+
+        <button type="submit" class="btn-primary">Guardar perfil</button>
+        <p id="perfil-saved" class="save-confirm hidden">Perfil guardado.</p>
+      </form>
+    </section>
+
+    <!-- ---------- PLAN ---------- -->
+    <section id="view-plan" class="view">
+      <header class="view-header">
+        <div>
+          <p class="eyebrow">Suscripción</p>
+          <h1>Elige tu plan</h1>
+        </div>
+      </header>
+      <div id="plans-grid" class="plans-grid">Cargando planes…</div>
+    </section>
+
+    <!-- ---------- MATERIAL DEL MES ---------- -->
+    <section id="view-material" class="view">
+      <header class="view-header">
+        <div>
+          <p class="eyebrow">Producción mensual</p>
+          <h1>Sube tu material de este mes</h1>
+        </div>
+      </header>
+      <p class="view-desc">En vez de mandarlo por WhatsApp, cuéntanos qué promocionar y nuestro sistema lo convierte en contenido para cada canal.</p>
+
+      <form id="material-form" class="stack-form">
+        <label>Mes
+          <input type="month" id="m-month" required>
+        </label>
+        <label>¿Qué quieres promocionar?
+          <textarea id="m-promote" rows="2" placeholder="Ej. Hamburguesa nueva, cuesta $169, tenemos 6 fotos"></textarea>
+        </label>
+        <label>Detalles de la promoción
+          <textarea id="m-promo-details" rows="2" placeholder="Ej. 15% de descuento con tarjeta corporativa"></textarea>
+        </label>
+        <label>¿Hay algo nuevo este mes?
+          <textarea id="m-new" rows="2"></textarea>
+        </label>
+        <label>Fotos y videos (URLs, por ahora)
+          <textarea id="m-media" rows="2" placeholder="Una URL por línea"></textarea>
+        </label>
+        <label>Objetivo
+          <select id="m-objective">
+            <option value="mas_ventas">Más ventas</option>
+            <option value="mas_seguidores">Más seguidores</option>
+            <option value="mas_visitas">Más visitas</option>
+            <option value="lanzar_producto">Lanzar producto</option>
+            <option value="clientes_nuevos">Conseguir clientes nuevos</option>
+          </select>
+        </label>
+        <button type="submit" class="btn-primary">Enviar a producción</button>
+      </form>
+
+      <h3 class="subsection-title">Historial de solicitudes</h3>
+      <div id="material-history" class="history-list">Cargando…</div>
+    </section>
+
+    <!-- ---------- PROMOCIONES ---------- -->
+    <section id="view-promociones" class="view">
+      <header class="view-header">
+        <div>
+          <p class="eyebrow">Marketplace corporativo</p>
+          <h1>Tus promociones</h1>
+        </div>
+      </header>
+
+      <form id="promo-form" class="inline-form">
+        <input type="text" id="promo-title" placeholder="Ej. 15% Daimler" required>
+        <input type="number" id="promo-discount" placeholder="% descuento" min="0" max="100">
+        <select id="promo-corporate"><option value="">Todos los corporativos</option></select>
+        <button type="submit" class="btn-primary">Crear promoción</button>
+      </form>
+
+      <div id="promo-list" class="history-list">Cargando…</div>
+    </section>
+
+    <!-- ---------- CANJEAR QR ---------- -->
+    <section id="view-canjes" class="view">
+      <header class="view-header">
+        <div>
+          <p class="eyebrow">Punto de venta</p>
+          <h1>Canjear un QR</h1>
+        </div>
+      </header>
+      <p class="view-desc">Cuando un empleado te muestre su QR, captura el token, la promoción, su ID de empleado y el monto de la compra.</p>
+
+      <form id="redeem-form" class="stack-form">
+        <div class="form-grid">
+          <label>Token del QR
+            <input type="text" id="r-token" required placeholder="Pegar token">
+          </label>
+          <label>ID de promoción
+            <input type="number" id="r-promotion" required>
+          </label>
+          <label>ID de empleado
+            <input type="number" id="r-employee" required>
+          </label>
+          <label>Monto de la compra (MXN)
+            <input type="number" id="r-amount" min="0" step="0.01">
+          </label>
+        </div>
+        <button type="submit" class="btn-primary">Confirmar canje</button>
+      </form>
+      <div id="redeem-result" class="redeem-result hidden"></div>
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
