@@ -41,6 +41,7 @@ const PORT = process.env.PORT || 3001;
 
 async function start() {
   await sequelize.sync(); // MVP: sync automático. En producción usar migraciones.
+  await require('./seed')(); // crea planes, corporativos y admin si no existen todavía
   app.listen(PORT, () => console.log(`API corriendo en http://localhost:${PORT}`));
 }
 
