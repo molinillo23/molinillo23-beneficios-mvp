@@ -4,15 +4,19 @@ const { hashPassword } = require('./utils/auth');
 
 async function seed() {
   const plans = [
-    { name: 'Presencia', priceMxn: 1750, description: 'Perfil + branding básico + landing page', features: JSON.stringify(['Perfil', 'Branding básico', 'Landing page', 'Marketplace']) },
-    { name: 'Growth', priceMxn: 3000, description: 'Web + contenido mensual + promociones', features: JSON.stringify(['Web', '12 posts/mes', '8 historias', '4 videos cortos', '1 promoción mensual', 'Marketplace']) },
-    { name: 'Pro', priceMxn: 5000, description: 'Web + redes + fotos + videos + campañas', features: JSON.stringify(['Web', 'Redes', 'Fotos/video editado', 'Campañas', 'Analítica']) },
-    { name: 'Corporate+', priceMxn: 6500, description: 'Todo + producción ampliada + automatización + campañas segmentadas', features: JSON.stringify(['Todo lo anterior', 'Producción ampliada', 'Automatización', 'Campañas segmentadas', 'Prioridad']) },
+    { name: 'Presencia', priceMxn: 1750, description: 'Perfil + branding básico + landing page', features: JSON.stringify(['Perfil', 'Branding básico', 'Landing page', 'Marketplace']), stripePriceId: process.env.STRIPE_PRICE_PRESENCIA || null },
+    { name: 'Growth', priceMxn: 3000, description: 'Web + contenido mensual + promociones', features: JSON.stringify(['Web', '12 posts/mes', '8 historias', '4 videos cortos', '1 promoción mensual', 'Marketplace']), stripePriceId: process.env.STRIPE_PRICE_GROWTH || null },
+    { name: 'Pro', priceMxn: 5000, description: 'Web + redes + fotos + videos + campañas', features: JSON.stringify(['Web', 'Redes', 'Fotos/video editado', 'Campañas', 'Analítica']), stripePriceId: process.env.STRIPE_PRICE_PRO || null },
+    { name: 'Corporate+', priceMxn: 6500, description: 'Todo + producción ampliada + automatización + campañas segmentadas', features: JSON.stringify(['Todo lo anterior', 'Producción ampliada', 'Automatización', 'Campañas segmentadas', 'Prioridad']), stripePriceId: process.env.STRIPE_PRICE_CORPORATE || null },
   ];
 
   for (const p of plans) {
     const [plan] = await Plan.findOrCreate({ where: { name: p.name }, defaults: p });
-    console.log(`Plan listo: ${plan.name} - $${plan.priceMxn}/mes`);
+    // Si el plan ya existía pero cambió el precio de Stripe en las variables de entorno, lo actualizamos.
+    if (p.stripePriceId && plan.stripePriceId !== p.stripePriceId) {
+      await plan.update({ stripePriceId: p.stripePriceId });
+    }
+    console.log(`Plan listo: ${plan.name} - $${plan.priceMxn}/mes${plan.stripePriceId ? ' (Stripe conectado)' : ' (Stripe SIN configurar)'}`);
   }
 
   const corporates = [
