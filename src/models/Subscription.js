@@ -11,6 +11,8 @@ const Subscription = sequelize.define('Subscription', {
   },
   startDate: { type: DataTypes.DATEONLY, allowNull: false },
   endDate: { type: DataTypes.DATEONLY },
+  stripeSubscriptionId: { type: DataTypes.STRING }, // sub_... en Stripe, para cancelar/consultar
+  stripeCustomerId: { type: DataTypes.STRING }, // cus_... en Stripe
 }, {
   tableName: 'subscriptions',
   timestamps: true,
