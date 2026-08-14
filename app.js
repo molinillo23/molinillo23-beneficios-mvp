@@ -261,13 +261,15 @@ async function loadPlans(currentSubscription) {
 
   document.querySelectorAll('.plan-btn:not(.is-current)').forEach((btn) => {
     btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = 'Redirigiendo a pago…';
       try {
-        await api('/plans/subscribe', { method: 'POST', body: { planId: Number(btn.dataset.planId) } });
-        await bootApp();
-        switchView('inicio');
-        document.querySelector('[data-view="inicio"]').click();
+        const { url } = await api('/plans/subscribe-checkout', { method: 'POST', body: { planId: Number(btn.dataset.planId) } });
+        window.location.href = url; // Stripe Checkout — el negocio paga ahí y regresa solo
       } catch (err) {
-        alert(`No se pudo cambiar de plan: ${err.message}`);
+        alert(`No se pudo iniciar el pago: ${err.message}`);
+        btn.disabled = false;
+        btn.textContent = 'Elegir este plan';
       }
     });
   });
@@ -484,6 +486,17 @@ document.getElementById('redeem-form').addEventListener('submit', async (e) => {
 });
 
 // ===================== INIT =====================
+
+// Si venimos de vuelta de Stripe Checkout, avisamos y limpiamos la URL.
+const checkoutParam = new URLSearchParams(window.location.search).get('checkout');
+if (checkoutParam === 'success') {
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => alert('¡Pago confirmado! Tu plan se activa en unos segundos.'), 500);
+  });
+  window.history.replaceState({}, '', window.location.pathname);
+} else if (checkoutParam === 'cancelled') {
+  window.history.replaceState({}, '', window.location.pathname);
+}
 
 if (state.token) {
   bootApp();
