@@ -33,6 +33,7 @@ app.use(express.static(path.join(__dirname, '..')));
 
 // Sirve el Panel Admin en /admin (carpeta separada, mismo servidor).
 app.use('/admin', express.static(path.join(__dirname, '..', 'panel-admin')));
+app.use('/empleado', express.static(path.join(__dirname, '..', 'panel-empleado')));
 
 // Manejador de errores genérico
 app.use((err, req, res, next) => {
