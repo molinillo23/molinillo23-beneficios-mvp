@@ -12,9 +12,16 @@ const promotionRoutes = require('./routes/promotions');
 const redemptionRoutes = require('./routes/redemptions');
 const corporateRoutes = require('./routes/corporates');
 const adminRoutes = require('./routes/admin');
+const webhookRoutes = require('./routes/webhooks');
 
 const app = express();
 app.use(cors());
+
+// El webhook de Stripe necesita el body "crudo" (sin parsear) para poder
+// verificar la firma, así que se registra ANTES de express.json() y con su
+// propio parser (express.raw). Todo lo demás usa JSON normal.
+app.use('/api/webhooks', express.raw({ type: 'application/json' }), webhookRoutes);
+
 app.use(express.json());
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
@@ -33,6 +40,8 @@ app.use(express.static(path.join(__dirname, '..')));
 
 // Sirve el Panel Admin en /admin (carpeta separada, mismo servidor).
 app.use('/admin', express.static(path.join(__dirname, '..', 'panel-admin')));
+
+// Sirve la App del Empleado en /empleado (carpeta separada, mismo servidor).
 app.use('/empleado', express.static(path.join(__dirname, '..', 'panel-empleado')));
 
 // Manejador de errores genérico
