@@ -454,6 +454,59 @@ input, textarea, select, button {
 
 .empty-note { color: var(--utility); font-size: 0.85rem; }
 
+/* ===================== FOTOS IA ===================== */
+.quota-bar {
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+}
+.quota-track {
+  margin-top: 6px;
+  height: 6px;
+  background: #E5E1D8;
+  border-radius: 3px;
+  overflow: hidden;
+  max-width: 320px;
+}
+.quota-fill {
+  height: 100%;
+  background: var(--steel-dark, #2E2A24);
+  border-radius: 3px;
+}
+.media-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+.media-card {
+  border: 1px solid var(--line, #DDD6C8);
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+}
+.media-card img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+.media-card-prompt {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 0.78rem;
+  color: var(--ink);
+  line-height: 1.4;
+}
+.media-card-pending, .media-card-error {
+  padding: 14px 12px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+.media-card-error { border-color: var(--stamp); }
+
 /* ===================== RESPONSIVE ===================== */
 @media (max-width: 760px) {
   .app { grid-template-columns: 1fr; }
