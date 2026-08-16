@@ -1,7 +1,9 @@
 const express = require('express');
 const { z } = require('zod');
 const { requireAuth, requireRole } = require('../middleware/auth');
-const { Business, Product, ContentRequest, Subscription, Plan, Promotion, AnalyticsEvent } = require('../models');
+const { Business, Product, ContentRequest, Subscription, Plan, Promotion, AnalyticsEvent, MediaAsset } = require('../models');
+const { generatePhoto } = require('../services/aiImage');
+const { getPhotoQuota } = require('../services/aiQuota');
 
 const router = express.Router();
 
@@ -113,6 +115,59 @@ router.post('/me/content-requests', requireAuth, requireRole('business'), async 
 
   const request = await ContentRequest.create(data);
   res.status(201).json(request);
+});
+
+// --- Fotos generadas por IA (Gemini) ---
+// El negocio describe qué quiere mostrar; se descuenta de la cuota mensual
+// de su plan (Plan.aiPhotosPerMonth, ver src/services/aiQuota.js) y se
+// genera con Gemini (src/services/aiImage.js). El archivo se guarda en
+// /uploads/generated y queda registrado en MediaAsset para historial y costo.
+
+const generatePhotoSchema = z.object({
+  description: z.string().min(1),
+  contentRequestId: z.number().optional(),
+});
+
+router.post('/me/media/photos', requireAuth, requireRole('business'), async (req, res) => {
+  const parsed = generatePhotoSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const business = await getOwnBusiness(req, res);
+  if (!business) return;
+
+  const quota = await getPhotoQuota(business.id);
+  if (!quota.allowed) {
+    return res.status(403).json({
+      error: `Alcanzaste el límite de fotos IA de tu plan este mes (${quota.used}/${quota.limit}). Sube de plan o espera al próximo mes.`,
+      quota,
+    });
+  }
+
+  const asset = await MediaAsset.create({
+    businessId: business.id,
+    contentRequestId: parsed.data.contentRequestId || null,
+    type: 'photo',
+    provider: 'gemini',
+    prompt: parsed.data.description,
+    status: 'generating',
+  });
+
+  try {
+    const { url, costUsd } = await generatePhoto({ business, description: parsed.data.description });
+    await asset.update({ status: 'completed', url, costUsd });
+    res.status(201).json(asset);
+  } catch (err) {
+    await asset.update({ status: 'failed', errorMessage: err.message });
+    res.status(502).json({ error: err.message, asset });
+  }
+});
+
+// GET /api/businesses/me/media  (galería + cuota restante, para el Panel Negocio)
+router.get('/me/media', requireAuth, requireRole('business'), async (req, res) => {
+  const business = await getOwnBusiness(req, res);
+  if (!business) return;
+  const assets = await MediaAsset.findAll({ where: { businessId: business.id }, order: [['createdAt', 'DESC']] });
+  const quota = await getPhotoQuota(business.id);
+  res.json({ assets, quota });
 });
 
 // --- Dashboard: suscripción, promociones y métricas propias ---
