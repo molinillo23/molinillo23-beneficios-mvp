@@ -34,6 +34,12 @@ app.use('/api/redemptions', redemptionRoutes);
 app.use('/api/corporates', corporateRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Sirve las fotos/videos generados por IA (src/services/aiImage.js escribe
+// aquí). En Railway esto vive en el filesystem efímero del contenedor: si
+// migras a multi-instancia o necesitas persistencia a largo plazo, cambia
+// aiImage.js para subir a S3/Cloudinary en vez de disco local.
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
 // Sirve el Panel Negocio (index.html, app.js, styles.css) desde la raíz del
 // proyecto, para que backend y frontend vivan en el mismo link.
 app.use(express.static(path.join(__dirname, '..')));
