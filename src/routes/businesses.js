@@ -2,7 +2,7 @@ const express = require('express');
 const { z } = require('zod');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { Business, Product, ContentRequest, Subscription, Plan, Promotion, AnalyticsEvent, MediaAsset } = require('../models');
-const { generatePhoto } = require('../services/aiImage');
+const { generatePhoto } = require('../services/aiimage');
 const { getPhotoQuota } = require('../services/aiQuota');
 
 const router = express.Router();
