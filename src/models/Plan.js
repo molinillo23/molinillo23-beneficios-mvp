@@ -8,6 +8,7 @@ const Plan = sequelize.define('Plan', {
   description: { type: DataTypes.TEXT },
   features: { type: DataTypes.TEXT }, // JSON string array
   stripePriceId: { type: DataTypes.STRING }, // ID del "Price" configurado en Stripe (price_...)
+  aiPhotosPerMonth: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 }, // cuántas fotos IA puede generar el negocio al mes
 }, {
   tableName: 'plans',
   timestamps: true,
