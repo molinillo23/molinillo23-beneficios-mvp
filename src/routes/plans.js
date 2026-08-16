@@ -70,6 +70,7 @@ router.post('/subscribe-checkout', requireAuth, requireRole('business'), async (
 
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
+    payment_method_types: ['card'],
     customer_email: user.email,
     line_items: [{ price: plan.stripePriceId, quantity: 1 }],
     success_url: `${origin}/?checkout=success`,
