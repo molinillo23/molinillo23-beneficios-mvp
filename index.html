@@ -81,11 +81,14 @@
       <button class="nav-item" data-view="material">
         <span class="nav-num">04</span> Material del mes
       </button>
+      <button class="nav-item" data-view="fotos">
+        <span class="nav-num">05</span> Fotos IA
+      </button>
       <button class="nav-item" data-view="promociones">
-        <span class="nav-num">05</span> Promociones
+        <span class="nav-num">06</span> Promociones
       </button>
       <button class="nav-item" data-view="canjes">
-        <span class="nav-num">06</span> Canjear QR
+        <span class="nav-num">07</span> Canjear QR
       </button>
     </nav>
     <div class="sidebar-footer">
@@ -233,6 +236,30 @@
 
       <h3 class="subsection-title">Historial de solicitudes</h3>
       <div id="material-history" class="history-list">Cargando…</div>
+    </section>
+
+    <!-- ---------- FOTOS IA ---------- -->
+    <section id="view-fotos" class="view">
+      <header class="view-header">
+        <div>
+          <p class="eyebrow">Generación con IA</p>
+          <h1>Fotos con IA</h1>
+        </div>
+      </header>
+      <p class="view-desc">Describe qué quieres mostrar y la IA genera la foto. Se descuenta de tu cuota mensual según tu plan.</p>
+
+      <div id="fotos-quota" class="quota-bar">Cargando cuota…</div>
+
+      <form id="fotos-form" class="stack-form">
+        <label>¿Qué quieres que muestre la foto?
+          <textarea id="f-description" rows="3" required placeholder="Ej. Una hamburguesa doble con queso y papas, fondo de madera, luz cálida, estilo restaurante"></textarea>
+        </label>
+        <button type="submit" class="btn-primary">Generar foto</button>
+        <p id="fotos-error" class="auth-error hidden"></p>
+      </form>
+
+      <h3 class="subsection-title">Tus fotos generadas</h3>
+      <div id="fotos-gallery" class="media-grid">Cargando…</div>
     </section>
 
     <!-- ---------- PROMOCIONES ---------- -->
