@@ -11,6 +11,7 @@ const Employee = require('./Employee');
 const Promotion = require('./Promotion');
 const Redemption = require('./Redemption');
 const AnalyticsEvent = require('./AnalyticsEvent');
+const MediaAsset = require('./MediaAsset');
 
 // --- Asociaciones ---
 
@@ -49,6 +50,11 @@ Redemption.belongsTo(Business, { foreignKey: 'businessId' });
 Business.hasMany(AnalyticsEvent, { foreignKey: 'businessId' });
 AnalyticsEvent.belongsTo(Business, { foreignKey: 'businessId' });
 
+Business.hasMany(MediaAsset, { foreignKey: 'businessId' });
+MediaAsset.belongsTo(Business, { foreignKey: 'businessId' });
+ContentRequest.hasMany(MediaAsset, { foreignKey: 'contentRequestId' });
+MediaAsset.belongsTo(ContentRequest, { foreignKey: 'contentRequestId' });
+
 module.exports = {
   sequelize,
   User,
@@ -62,4 +68,5 @@ module.exports = {
   Promotion,
   Redemption,
   AnalyticsEvent,
+  MediaAsset,
 };
