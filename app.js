@@ -115,6 +115,7 @@ function switchView(view) {
   document.querySelectorAll('.nav-item').forEach((b) => b.classList.toggle('active', b.dataset.view === view));
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === `view-${view}`));
   if (view === 'material') loadMaterialHistory();
+  if (view === 'fotos') loadMediaGallery();
   if (view === 'promociones') loadPromotions();
 }
 
@@ -404,6 +405,82 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+// ===================== FOTOS IA =====================
+
+document.getElementById('fotos-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errorEl = document.getElementById('fotos-error');
+  errorEl.classList.add('hidden');
+  const btn = e.target.querySelector('button[type="submit"]');
+  const description = document.getElementById('f-description').value;
+
+  btn.disabled = true;
+  btn.textContent = 'Generando… (puede tardar unos segundos)';
+  try {
+    await api('/businesses/me/media/photos', {
+      method: 'POST',
+      body: { description },
+    });
+    e.target.reset();
+    await loadMediaGallery();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generar foto';
+  }
+});
+
+async function loadMediaGallery() {
+  const quotaEl = document.getElementById('fotos-quota');
+  const galleryEl = document.getElementById('fotos-gallery');
+  quotaEl.textContent = 'Cargando cuota…';
+  galleryEl.innerHTML = 'Cargando…';
+
+  try {
+    const { assets, quota } = await api('/businesses/me/media');
+
+    const pct = quota.limit > 0 ? Math.min(100, Math.round((quota.used / quota.limit) * 100)) : 0;
+    quotaEl.innerHTML = quota.limit > 0
+      ? `<strong>${quota.used} / ${quota.limit}</strong> fotos IA usadas este mes
+         <div class="quota-track"><div class="quota-fill" style="width:${pct}%"></div></div>`
+      : `<p class="empty-note">Tu plan actual no incluye fotos con IA. Ve a "Mi plan" para subir de nivel.</p>`;
+
+    const submitBtn = document.querySelector('#fotos-form button[type="submit"]');
+    submitBtn.disabled = quota.limit > 0 && quota.used >= quota.limit;
+
+    if (!assets.length) {
+      galleryEl.innerHTML = `<p class="empty-note">Aún no has generado ninguna foto.</p>`;
+      return;
+    }
+
+    galleryEl.innerHTML = assets.map((a) => {
+      if (a.status === 'completed' && a.url) {
+        return `
+          <div class="media-card">
+            <img src="${a.url}" alt="Foto generada" loading="lazy">
+            <p class="media-card-prompt">${escapeHtml(a.prompt || '')}</p>
+          </div>`;
+      }
+      if (a.status === 'failed') {
+        return `
+          <div class="media-card media-card-error">
+            <p class="media-card-prompt">${escapeHtml(a.prompt || '')}</p>
+            <p class="empty-note">Falló: ${escapeHtml(a.errorMessage || 'error desconocido')}</p>
+          </div>`;
+      }
+      return `
+        <div class="media-card media-card-pending">
+          <p class="media-card-prompt">${escapeHtml(a.prompt || '')}</p>
+          <p class="empty-note">Generando…</p>
+        </div>`;
+    }).join('');
+  } catch (err) {
+    galleryEl.innerHTML = `<p class="empty-note">No se pudo cargar: ${err.message}</p>`;
+  }
 }
 
 // ===================== PROMOCIONES =====================
