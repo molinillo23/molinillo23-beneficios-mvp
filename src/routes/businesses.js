@@ -1,9 +1,10 @@
 const express = require('express');
 const { z } = require('zod');
 const { requireAuth, requireRole } = require('../middleware/auth');
-const { Business, Product, ContentRequest, Subscription, Plan, Promotion, AnalyticsEvent, MediaAsset } = require('../models');
+const { Business, Product, ContentRequest, Subscription, Plan, Promotion, AnalyticsEvent, MediaAsset, AssistantMessage } = require('../models');
 const { generatePhoto } = require('../services/aiimage');
 const { getPhotoQuota } = require('../services/aiQuota');
+const { chat: assistantChat } = require('../services/aiAssistant');
 
 const router = express.Router();
 
@@ -170,6 +171,56 @@ router.get('/me/media', requireAuth, requireRole('business'), async (req, res) =
   const assets = await MediaAsset.findAll({ where: { businessId: business.id }, order: [['createdAt', 'DESC']] });
   const quota = await getPhotoQuota(business.id);
   res.json({ assets, quota });
+});
+
+// --- Asistente IA (Claude) — chat contextualizado por negocio ---
+// El negocio ve un chat; cada mensaje se guarda y se le manda a Claude junto
+// con el perfil del negocio (ver src/services/aiAssistant.js) y el historial
+// previo, para que las respuestas sean específicas a su negocio, no genéricas.
+
+router.get('/me/assistant/messages', requireAuth, requireRole('business'), async (req, res) => {
+  const business = await getOwnBusiness(req, res);
+  if (!business) return;
+  const messages = await AssistantMessage.findAll({
+    where: { businessId: business.id },
+    order: [['createdAt', 'ASC']],
+  });
+  res.json(messages);
+});
+
+const assistantMessageSchema = z.object({
+  message: z.string().min(1),
+});
+
+router.post('/me/assistant/messages', requireAuth, requireRole('business'), async (req, res) => {
+  const parsed = assistantMessageSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const business = await getOwnBusiness(req, res);
+  if (!business) return;
+
+  const history = await AssistantMessage.findAll({
+    where: { businessId: business.id },
+    order: [['createdAt', 'ASC']],
+    limit: 20, // suficiente contexto sin mandar la conversación entera cada vez
+  });
+
+  const userMessage = await AssistantMessage.create({
+    businessId: business.id,
+    role: 'user',
+    text: parsed.data.message,
+  });
+
+  try {
+    const replyText = await assistantChat({ business, history, message: parsed.data.message });
+    const assistantMessage = await AssistantMessage.create({
+      businessId: business.id,
+      role: 'assistant',
+      text: replyText,
+    });
+    res.status(201).json({ userMessage, assistantMessage });
+  } catch (err) {
+    res.status(502).json({ error: err.message, userMessage });
+  }
 });
 
 // --- Dashboard: suscripción, promociones y métricas propias ---
