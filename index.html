@@ -90,6 +90,9 @@
       <button class="nav-item" data-view="canjes">
         <span class="nav-num">07</span> Canjear QR
       </button>
+      <button class="nav-item" data-view="asistente">
+        <span class="nav-num">08</span> Asistente IA
+      </button>
     </nav>
     <div class="sidebar-footer">
       <div class="biz-chip">
@@ -309,6 +312,25 @@
         <button type="submit" class="btn-primary">Confirmar canje</button>
       </form>
       <div id="redeem-result" class="redeem-result hidden"></div>
+    </section>
+
+    <!-- ---------- ASISTENTE IA ---------- -->
+    <section id="view-asistente" class="view">
+      <header class="view-header">
+        <div>
+          <p class="eyebrow">Claude, contextualizado con tu negocio</p>
+          <h1>Asistente IA</h1>
+        </div>
+      </header>
+      <p class="view-desc">Pregúntale qué promocionar, cómo redactar algo o cómo subir un producto nuevo. Ya conoce tu negocio porque lee lo que llenaste en "Mi perfil".</p>
+
+      <div class="chat-container">
+        <div id="chat-messages" class="chat-messages">Cargando…</div>
+        <form id="chat-form" class="chat-input-row">
+          <textarea id="chat-input" rows="1" placeholder="Escribe tu pregunta…" required></textarea>
+          <button type="submit" class="btn-primary">Enviar</button>
+        </form>
+      </div>
     </section>
 
   </main>
