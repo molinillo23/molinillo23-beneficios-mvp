@@ -151,14 +151,16 @@ router.post('/me/media/photos', requireAuth, requireRole('business'), async (req
     status: 'generating',
   });
 
-  try {
-    const { url, costUsd } = await generatePhoto({ business, description: parsed.data.description });
-    await asset.update({ status: 'completed', url, costUsd });
-    res.status(201).json(asset);
-  } catch (err) {
-    await asset.update({ status: 'failed', errorMessage: err.message });
-    res.status(502).json({ error: err.message, asset });
-  }
+  // Respondemos de inmediato con el registro en estado "generating" — el
+  // negocio ve "tu foto se está generando", nunca un error en vivo aunque
+  // Gemini tarde o falle. La llamada real corre en segundo plano; si falla,
+  // el asset queda en 'failed' y cae en la bandeja de pendientes del admin
+  // (GET /api/admin/media-assets?status=failed) para resolución manual.
+  res.status(202).json(asset);
+
+  generatePhoto({ business, description: parsed.data.description })
+    .then(({ url, costUsd }) => asset.update({ status: 'completed', url, costUsd }))
+    .catch((err) => asset.update({ status: 'failed', errorMessage: err.message }));
 });
 
 // GET /api/businesses/me/media  (galería + cuota restante, para el Panel Negocio)
