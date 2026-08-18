@@ -2,9 +2,10 @@ const express = require('express');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const {
   Business, Subscription, Plan, Corporate, Employee, User,
-  Promotion, Redemption, ContentRequest, ContentItem, AnalyticsEvent,
+  Promotion, Redemption, ContentRequest, ContentItem, AnalyticsEvent, MediaAsset,
 } = require('../models');
 const { generateContentPieces } = require('../services/aiContent');
+const { generatePhoto } = require('../services/aiimage');
 
 const router = express.Router();
 
@@ -123,6 +124,57 @@ router.patch('/content-items/:id', async (req, res) => {
   if (typeof text !== 'string' || !text.trim()) return res.status(400).json({ error: 'Texto inválido' });
   await item.update({ text: text.trim() });
   res.json(item);
+});
+
+// --- Bandeja de pendientes de fotos IA (red de seguridad manual) ---
+// Cuando Gemini falla, el MediaAsset queda en 'failed' y aparece aquí para
+// que el equipo lo resuelva a mano sin que el negocio vea el error.
+
+// GET /api/admin/media-assets?status=failed  (bandeja de pendientes)
+router.get('/media-assets', async (req, res) => {
+  const status = req.query.status;
+  const where = status ? { status } : {};
+  const assets = await MediaAsset.findAll({
+    where,
+    include: [{ model: Business, attributes: ['id', 'name', 'giro'] }],
+    order: [['createdAt', 'ASC']],
+  });
+  res.json(assets);
+});
+
+// PATCH /api/admin/media-assets/:id  (resolver a mano: pegar la URL ya
+// generada manualmente y marcar 'completed', o marcar 'failed' con nota si
+// no se puede resolver)
+router.patch('/media-assets/:id', async (req, res) => {
+  const asset = await MediaAsset.findByPk(req.params.id);
+  if (!asset) return res.status(404).json({ error: 'Recurso no encontrado' });
+  const { url, status, errorMessage } = req.body;
+  if (status && !['completed', 'failed'].includes(status)) {
+    return res.status(400).json({ error: 'Estado inválido' });
+  }
+  if (status === 'completed' && !url) {
+    return res.status(400).json({ error: 'Falta la URL de la foto resuelta manualmente' });
+  }
+  await asset.update({
+    ...(url ? { url } : {}),
+    ...(status ? { status } : {}),
+    ...(errorMessage ? { errorMessage } : {}),
+    provider: status === 'completed' ? 'manual' : asset.provider,
+  });
+  res.json(asset);
+});
+
+// POST /api/admin/media-assets/:id/retry  (reintenta la generación con Gemini)
+router.post('/media-assets/:id/retry', async (req, res) => {
+  const asset = await MediaAsset.findByPk(req.params.id, { include: [Business] });
+  if (!asset) return res.status(404).json({ error: 'Recurso no encontrado' });
+
+  await asset.update({ status: 'generating', errorMessage: null });
+  res.status(202).json(asset);
+
+  generatePhoto({ business: asset.Business, description: asset.prompt })
+    .then(({ url, costUsd }) => asset.update({ status: 'completed', url, costUsd }))
+    .catch((err) => asset.update({ status: 'failed', errorMessage: err.message }));
 });
 
 // GET /api/admin/employees  (listado completo, para verificar manualmente)
