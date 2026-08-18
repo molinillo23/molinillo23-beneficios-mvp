@@ -12,6 +12,7 @@ const Promotion = require('./Promotion');
 const Redemption = require('./Redemption');
 const AnalyticsEvent = require('./AnalyticsEvent');
 const MediaAsset = require('./MediaAsset');
+const ContentItem = require('./ContentItem');
 
 // --- Asociaciones ---
 
@@ -34,6 +35,9 @@ Product.belongsTo(Business, { foreignKey: 'businessId' });
 
 Business.hasMany(ContentRequest, { foreignKey: 'businessId' });
 ContentRequest.belongsTo(Business, { foreignKey: 'businessId' });
+
+ContentRequest.hasMany(ContentItem, { foreignKey: 'contentRequestId' });
+ContentItem.belongsTo(ContentRequest, { foreignKey: 'contentRequestId' });
 
 Business.hasMany(Promotion, { foreignKey: 'businessId' });
 Promotion.belongsTo(Business, { foreignKey: 'businessId' });
@@ -69,4 +73,5 @@ module.exports = {
   Redemption,
   AnalyticsEvent,
   MediaAsset,
+  ContentItem,
 };
