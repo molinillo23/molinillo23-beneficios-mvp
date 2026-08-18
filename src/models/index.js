@@ -13,6 +13,7 @@ const Redemption = require('./Redemption');
 const AnalyticsEvent = require('./AnalyticsEvent');
 const MediaAsset = require('./MediaAsset');
 const ContentItem = require('./ContentItem');
+const AssistantMessage = require('./AssistantMessage');
 
 // --- Asociaciones ---
 
@@ -59,6 +60,9 @@ MediaAsset.belongsTo(Business, { foreignKey: 'businessId' });
 ContentRequest.hasMany(MediaAsset, { foreignKey: 'contentRequestId' });
 MediaAsset.belongsTo(ContentRequest, { foreignKey: 'contentRequestId' });
 
+Business.hasMany(AssistantMessage, { foreignKey: 'businessId' });
+AssistantMessage.belongsTo(Business, { foreignKey: 'businessId' });
+
 module.exports = {
   sequelize,
   User,
@@ -74,4 +78,5 @@ module.exports = {
   AnalyticsEvent,
   MediaAsset,
   ContentItem,
+  AssistantMessage,
 };
