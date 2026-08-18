@@ -117,6 +117,7 @@ function switchView(view) {
   if (view === 'material') loadMaterialHistory();
   if (view === 'fotos') loadMediaGallery();
   if (view === 'promociones') loadPromotions();
+  if (view === 'asistente') loadChatMessages();
 }
 
 // ===================== BOOT =====================
@@ -559,6 +560,67 @@ document.getElementById('redeem-form').addEventListener('submit', async (e) => {
   } catch (err) {
     resultEl.classList.add('error');
     resultEl.textContent = `Error: ${err.message}`;
+  }
+});
+
+// ===================== 08 ASISTENTE IA =====================
+
+function renderChatMessages(messages) {
+  const el = document.getElementById('chat-messages');
+  if (!messages.length) {
+    el.innerHTML = `<p class="empty-note">Todavía no le has escrito nada al asistente. Pregúntale algo abajo para empezar.</p>`;
+    return;
+  }
+  el.innerHTML = messages.map((m) => `<div class="chat-bubble ${m.role}">${escapeHtml(m.text)}</div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function loadChatMessages() {
+  const el = document.getElementById('chat-messages');
+  el.innerHTML = 'Cargando…';
+  try {
+    const messages = await api('/businesses/me/assistant/messages');
+    renderChatMessages(messages);
+  } catch (err) {
+    el.innerHTML = `<p class="empty-note">No se pudo cargar: ${err.message}</p>`;
+  }
+}
+
+document.getElementById('chat-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const input = document.getElementById('chat-input');
+  const message = input.value.trim();
+  if (!message) return;
+
+  const el = document.getElementById('chat-messages');
+  const emptyNote = el.querySelector('.empty-note');
+  if (emptyNote) el.innerHTML = '';
+  el.insertAdjacentHTML('beforeend', `<div class="chat-bubble user">${escapeHtml(message)}</div>`);
+  el.insertAdjacentHTML('beforeend', `<div class="chat-bubble assistant chat-pending" id="chat-pending">Pensando…</div>`);
+  el.scrollTop = el.scrollHeight;
+  input.value = '';
+  input.disabled = true;
+
+  try {
+    const { assistantMessage } = await api('/businesses/me/assistant/messages', {
+      method: 'POST',
+      body: { message },
+    });
+    document.getElementById('chat-pending').outerHTML = `<div class="chat-bubble assistant">${escapeHtml(assistantMessage.text)}</div>`;
+  } catch (err) {
+    const pending = document.getElementById('chat-pending');
+    if (pending) pending.outerHTML = `<div class="chat-bubble assistant chat-error">No se pudo responder: ${escapeHtml(err.message)}</div>`;
+  } finally {
+    input.disabled = false;
+    input.focus();
+  }
+});
+
+// Enter para enviar, Shift+Enter para salto de línea
+document.getElementById('chat-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    document.getElementById('chat-form').requestSubmit();
   }
 });
 
