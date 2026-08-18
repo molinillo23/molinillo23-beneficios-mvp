@@ -69,6 +69,7 @@ function switchView(view) {
   if (view === 'corporativos') loadCorporates();
   if (view === 'empleados') loadEmployees();
   if (view === 'canjes') loadRedemptions();
+  if (view === 'fotos') loadMediaAssets();
 }
 
 // ===================== 01 RESUMEN =====================
@@ -330,6 +331,84 @@ async function loadRedemptions() {
         <span class="status-badge published">${new Date(r.createdAt).toLocaleDateString('es-MX')}</span>
       </div>
     `).join('');
+  } catch (err) {
+    el.innerHTML = `<p class="empty-note">No se pudo cargar: ${err.message}</p>`;
+  }
+}
+
+// ===================== 07 FOTOS IA (bandeja de pendientes) =====================
+
+const MEDIA_STATUS_LABELS = {
+  queued: 'En cola', generating: 'Generando…', completed: 'Completada', failed: 'Falló — necesita atención',
+};
+
+async function loadMediaAssets() {
+  const el = document.getElementById('media-assets-list');
+  el.innerHTML = 'Cargando…';
+  try {
+    const assets = await api('/admin/media-assets');
+    if (!assets.length) { el.innerHTML = `<p class="empty-note">No hay fotos generadas todavía.</p>`; return; }
+
+    el.innerHTML = assets.map((a) => `
+      <div class="history-item" style="flex-direction: column; align-items: stretch;">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+          <div class="history-item-main">
+            <span class="history-item-title">${a.Business ? a.Business.name : '—'} — "${a.prompt}"</span>
+            <span class="history-item-sub">${a.status === 'failed' ? (a.errorMessage || 'Sin detalle del error') : (a.url || 'Sin resolver todavía')}</span>
+          </div>
+          <span class="status-badge ${a.status === 'completed' ? 'published' : ''}">${MEDIA_STATUS_LABELS[a.status] || a.status}</span>
+        </div>
+        ${a.status === 'failed' ? `
+          <div class="item-actions" style="margin-top: 10px;">
+            <button class="btn-small primary" data-retry="${a.id}">Reintentar con Gemini</button>
+            <button class="btn-small" data-manual="${a.id}">Resolver a mano</button>
+          </div>
+          <div class="manual-form hidden" id="manual-form-${a.id}" style="margin-top:8px; display:flex; gap:8px;">
+            <input type="text" placeholder="Pega aquí la URL de la foto ya subida" id="manual-url-${a.id}" style="flex:1;">
+            <button class="btn-small primary" data-save-manual="${a.id}">Guardar</button>
+          </div>
+        ` : ''}
+      </div>
+    `).join('');
+
+    el.querySelectorAll('[data-retry]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        btn.textContent = 'Reintentando…';
+        try {
+          await api(`/admin/media-assets/${btn.dataset.retry}/retry`, { method: 'POST' });
+          setTimeout(loadMediaAssets, 1200);
+        } catch (err) {
+          alert(`No se pudo reintentar: ${err.message}`);
+          btn.disabled = false;
+          btn.textContent = 'Reintentar con Gemini';
+        }
+      });
+    });
+    el.querySelectorAll('[data-manual]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.getElementById(`manual-form-${btn.dataset.manual}`).classList.toggle('hidden');
+      });
+    });
+    el.querySelectorAll('[data-save-manual]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const input = document.getElementById(`manual-url-${btn.dataset.saveManual}`);
+        if (!input.value.trim()) { alert('Pega la URL de la foto primero.'); return; }
+        btn.disabled = true;
+        btn.textContent = 'Guardando…';
+        try {
+          await api(`/admin/media-assets/${btn.dataset.saveManual}`, {
+            method: 'PATCH',
+            body: { url: input.value.trim(), status: 'completed' },
+          });
+          await loadMediaAssets();
+        } catch (err) {
+          alert(`No se pudo guardar: ${err.message}`);
+          btn.disabled = false;
+          btn.textContent = 'Guardar';
+        }
+      });
+    });
   } catch (err) {
     el.innerHTML = `<p class="empty-note">No se pudo cargar: ${err.message}</p>`;
   }
